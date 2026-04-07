@@ -198,22 +198,26 @@ python3 ${CLAUDE_SKILL_DIR}/tools/pdf_parser.py \
 4. **立即写入中间文件**：`characters/{slug}/tmp/analysis_story_draft.md`
 5. 不要保留原文在上下文中——写完即释放
 
-#### Phase 2：用使用者角色材料补充关系细节
+#### Phase 2：用使用者角色材料补充关系细节 + 反向提取目标角色信息
 
 1. 读取 `${CLAUDE_SKILL_DIR}/prompts/persona_analyzer.md`（提取维度参考）
 2. 读取中间文件 `characters/{slug}/tmp/analysis_story_draft.md`（Phase 1 的产出）
 3. **逐个**读取使用者角色的压缩文件（`characters/{slug}/tmp/compressed_{使用者角色名}_*.md`）
-4. 补充：
+4. **反向提取目标角色信息**（重要！）：
+   - 目标角色的很多行为和细节会在使用者角色的本中体现（如对方视角看到的目标角色的动作、语言、表情、决策）
+   - 从使用者角色材料中提取目标角色的：具体行为描写、对话原文、关键场景细节、形象评价
+   - 这些信息用于补充 Phase 1 的 Story Memory（因为目标角色自己的本中可能没有这些视角）
+5. 补充关系细节：
    - 两人之间的互动细节、共同记忆
    - 使用者视角下的目标角色形象
    - 关系的另一面（对方怎么看待目标角色）
-5. 同时构建 Persona 5 层结构：
+6. 同时构建 Persona 5 层结构：
    - Layer 0：硬规则（该角色绝对不会做/说的事）
    - Layer 1：身份层（时代背景、社会地位、核心信念、人生信条）
    - Layer 2：表达风格（说话方式、用词习惯、时代感语言、情绪表达）
    - Layer 3：情感与决策模式（面对不同情境的反应）
    - Layer 4：关系行为层（对使用者角色 vs 对其他角色的不同态度和互动方式）
-6. **立即写入中间文件**：
+7. **立即写入中间文件**：
    - 更新 `characters/{slug}/tmp/analysis_story_draft.md`（补充后的完整 Story Memory）
    - 写入 `characters/{slug}/tmp/analysis_persona_draft.md`（Persona 5 层结构）
 
