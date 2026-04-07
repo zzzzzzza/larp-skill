@@ -1,0 +1,7 @@
+# Optional dependencies for larp-skill
+# Claude Code's Read tool natively supports PDF reading.
+# These are only needed if you want to use the pdf_parser.py tool for preprocessing.
+
+# PDF parsing (install one of these if needed)
+PyPDF2>=3.0.0
+# pdfplumber>=0.9.0  # Alternative PDF parser, uncomment if preferred

@@ -1,0 +1,21 @@
+# Generated character Skills
+characters/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temp
+/tmp/
+*.tmp
