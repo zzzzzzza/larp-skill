@@ -99,30 +99,34 @@ allowed-tools: Read, Write, Edit, Bash
 ```
 原材料怎么提供？材料越丰富，角色还原度越高。
 
-  [A] 目标角色的玩家本 / 人物小传 PDF（重要！）
-      如果是玩家位，提供该角色的一个或多个玩家本
-      如果是 NPC，提供该 NPC 的人物小传（若在 DM 手册中可截取出来）
+请在本地准备一个文件夹，按以下结构组织 PDF 文件：
 
-  [B] 你自己代入角色的玩家本 PDF（重要！）
-      这样 Skill 才知道「你们之间」发生了什么
+  {剧本名}/
+  ├── {目标角色名}/          # 目标角色的玩家本（重要！）
+  │   ├── 角色A.pdf
+  │   ├── 角色B.pdf
+  │   └── 角色C.pdf
+  ├── {你的角色名}/          # 你自己代入角色的玩家本（重要！）
+  │   ├── 角色A.pdf
+  │   ├── 角色B.pdf
+  │   └── 角色C.pdf
+  ├── DM手册/               # DM 手册（可选）
+  │   └── DM手册.pdf
+  └── {其他角色名}/          # 其他角色的玩家本（可选）
+      └── 其他角色.pdf
 
-  [C] DM 手册 PDF（可选）
-      补充全局故事线、真相和世界观
+准备好后，告诉我这个文件夹的本地路径即可。
 
-  [D] 其他角色的玩家本 / 人物小传 PDF（可选）
-      补充关系网络和多视角信息
-
-  [E] 直接口述 / 粘贴文字（可选）
-      补充你记得的互动细节、印象深刻的对话、角色的口头禅等
-
-可以混用多种方式，也可以只提供 [A] 和 [B]。
+也可以直接口述 / 粘贴文字，补充你记得的互动细节、印象深刻的对话、角色的口头禅等。
 ```
+
+用户提供文件夹路径后，自动扫描子文件夹，识别目标角色和使用者角色对应的 PDF 文件。子文件夹名与 Step 1 中收集的角色姓名匹配。
 
 ---
 
-#### 方式 A/B/C/D：PDF 文件
+#### PDF 文件处理
 
-用户提供 PDF 文件后：
+用户提供文件夹路径后，遍历各子文件夹中的 PDF 文件：
 
 1. 使用 `Read` 工具直接读取 PDF 内容
 2. 如果 PDF 较长或需要结构化提取，调用 `pdf_parser.py`：
@@ -132,10 +136,18 @@ python3 ${CLAUDE_SKILL_DIR}/tools/pdf_parser.py \
   --file "{pdf_path}" \
   --type "{player_script|npc_bio|dm_manual|other_script}" \
   --character "{character_name}" \
-  --output /tmp/parsed_output.txt
+  --output characters/{slug}/tmp/parsed_{name}.txt
 ```
 
-3. 读取解析结果，纳入分析
+3. **LLM 压缩**（防止上下文溢出）：对每个解析后的文本，参考 `${CLAUDE_SKILL_DIR}/prompts/compressor.md` 的压缩原则，用 LLM **逐个文件**进行语义压缩：
+   - 读取 compressor.md 了解压缩规则
+   - **每次只读取一个**解析后的文本文件
+   - 按压缩原则将其压缩为原文的 1/3 ~ 1/2 长度
+   - 保留所有对话原文、情感场景、时间节点、秘密真相
+   - 将压缩结果写入 `characters/{slug}/tmp/compressed_{name}.md`
+   - 重复以上步骤直到所有文件压缩完成
+
+4. 后续分析**只读取压缩后的文件**（`characters/{slug}/tmp/compressed_*.md`），不再读取原始解析文件
 
 **PDF 类型说明**：
 
@@ -148,7 +160,7 @@ python3 ${CLAUDE_SKILL_DIR}/tools/pdf_parser.py \
 
 ---
 
-#### 方式 E：直接口述
+#### 口述补充
 
 用户直接描述的内容作为补充材料，例如：
 - 角色的口头禅、说话习惯
@@ -162,32 +174,70 @@ python3 ${CLAUDE_SKILL_DIR}/tools/pdf_parser.py \
 
 ---
 
-### Step 3：分析原材料
+## Step 3：分析原材料（分批进行，防止上下文溢出）
 
-将收集到的所有原材料和用户填写的基础信息汇总，按以下两条线分析：
+⚠️ **重要：分批分析策略**
 
-**线路 A（Story Memory）**：
+由于剧本材料可能非常长（多个玩家本总计数千行），必须分批处理，每批分析后立即写入中间文件，释放上下文空间。
 
-* 参考 `${CLAUDE_SKILL_DIR}/prompts/story_analyzer.md` 中的提取维度
-* 提取：人物背景与经历、关键事件时间线、与各角色的关系图谱、秘密与隐藏信息、情感线
-* **重点提取**：该角色与使用者角色之间的所有互动、共同经历、情感纠葛
-* 建立角色时间线：出生/成长 → 关键转折 → 故事开始 → 核心事件 → 结局
+**严禁一次性读取所有材料。** 每次最多读取 1-2 个压缩后的文件进行分析。
 
-**线路 B（Persona）**：
+---
 
-* 参考 `${CLAUDE_SKILL_DIR}/prompts/persona_analyzer.md` 中的提取维度
-* 构建 5 层 Persona 结构：
-  - Layer 0：硬规则（该角色绝对不会做/说的事）
-  - Layer 1：身份层（时代背景、社会地位、核心信念、人生信条）
-  - Layer 2：表达风格（说话方式、用词习惯、时代感语言、情绪表达）
-  - Layer 3：情感与决策模式（面对不同情境的反应）
-  - Layer 4：关系行为层（对使用者角色 vs 对其他角色的不同态度和互动方式）
-* **特别注意**：从原材料中推断该角色对使用者角色说话时的特殊语气、称呼、态度变化
+#### Phase 1：分析目标角色材料 → 写入 Story 草稿
+
+1. 读取 `${CLAUDE_SKILL_DIR}/prompts/story_analyzer.md`（提取维度参考）
+2. **逐个**读取目标角色的压缩文件（`characters/{slug}/tmp/compressed_{角色名}_*.md`）
+3. 按 story_analyzer.md 的 6 个维度提取信息：
+   - 人物背景（基础身份 + 成长经历 + 核心秘密）
+   - 关键事件时间线
+   - 关系图谱
+   - 情感线
+   - 角色动机与目标
+   - 与使用者角色的专属记忆
+4. **立即写入中间文件**：`characters/{slug}/tmp/analysis_story_draft.md`
+5. 不要保留原文在上下文中——写完即释放
+
+#### Phase 2：用使用者角色材料补充关系细节
+
+1. 读取 `${CLAUDE_SKILL_DIR}/prompts/persona_analyzer.md`（提取维度参考）
+2. 读取中间文件 `characters/{slug}/tmp/analysis_story_draft.md`（Phase 1 的产出）
+3. **逐个**读取使用者角色的压缩文件（`characters/{slug}/tmp/compressed_{使用者角色名}_*.md`）
+4. 补充：
+   - 两人之间的互动细节、共同记忆
+   - 使用者视角下的目标角色形象
+   - 关系的另一面（对方怎么看待目标角色）
+5. 同时构建 Persona 5 层结构：
+   - Layer 0：硬规则（该角色绝对不会做/说的事）
+   - Layer 1：身份层（时代背景、社会地位、核心信念、人生信条）
+   - Layer 2：表达风格（说话方式、用词习惯、时代感语言、情绪表达）
+   - Layer 3：情感与决策模式（面对不同情境的反应）
+   - Layer 4：关系行为层（对使用者角色 vs 对其他角色的不同态度和互动方式）
+6. **立即写入中间文件**：
+   - 更新 `characters/{slug}/tmp/analysis_story_draft.md`（补充后的完整 Story Memory）
+   - 写入 `characters/{slug}/tmp/analysis_persona_draft.md`（Persona 5 层结构）
+
+#### Phase 3：最终整合（可选，如有 DM 手册或其他材料）
+
+如有 DM 手册或其他角色材料，读取对应压缩文件，补充：
+- 角色不知道的真相（标注"角色不自知"）
+- 多视角交叉验证
+- 全局故事线中的位置
+
+更新两个中间文件。
+
+---
+
+**分批分析原则**：
+- 每次上下文中最多同时存在：1 个 analyzer prompt + 1 个中间文件 + 1-2 个压缩材料（`.md`）
+- 分析完一批就写入文件，再读取下一批
+- 中间文件是累积更新的，每次 Phase 都在上一次的基础上补充
 
 ---
 
 ### Step 4：生成并预览
 
+读取中间文件 `characters/{slug}/tmp/analysis_story_draft.md` 和 `characters/{slug}/tmp/analysis_persona_draft.md`。
 参考 `${CLAUDE_SKILL_DIR}/prompts/story_builder.md` 生成 Story Memory 内容。
 参考 `${CLAUDE_SKILL_DIR}/prompts/persona_builder.md` 生成 Persona 内容（5 层结构）。
 
@@ -228,7 +278,31 @@ Persona 摘要：
 ```bash
 mkdir -p characters/{slug}/versions
 mkdir -p characters/{slug}/sources/pdfs
+mkdir -p characters/{slug}/tmp
 ```
+
+**1.5. 复制原始 PDF 文件**（用 Bash）：
+
+将用户提供的所有 PDF 文件复制到 `characters/{slug}/sources/pdfs/` 目录下，保留按角色名分组的子文件夹结构：
+
+```bash
+cp -r "{user_provided_folder}/{character_name}" characters/{slug}/sources/pdfs/
+```
+
+最终 `sources/pdfs/` 的结构应如：
+
+```
+sources/pdfs/
+├── {目标角色名}/
+│   ├── xxx_A.pdf
+│   └── ...
+├── {使用者角色名}/
+│   └── ...
+└── DM手册/  (可选)
+    └── ...
+```
+
+这样后续「追加材料」或「回溯原文」时可以直接找到原始文件。
 
 **2. 写入 story.md**（用 Write 工具）：
 路径：`characters/{slug}/story.md`
@@ -264,7 +338,7 @@ mkdir -p characters/{slug}/sources/pdfs
 **5. 生成完整 SKILL.md**（用 Write 工具）：
 路径：`characters/{slug}/SKILL.md`
 
-SKILL.md 结构：
+SKILL.md 结构（推荐引用方式，避免 SKILL.md 过大）：
 
 ```markdown
 ---
@@ -283,13 +357,19 @@ user-invocable: true
 
 ## PART A：故事记忆
 
-{story.md 全部内容}
+请参阅同目录下的 `story.md` 获取完整故事记忆。
+
+核心要点：
+- {列出 5-8 个 Story Memory 的核心要点，包含关键事件和与使用者角色的重要记忆}
 
 ---
 
 ## PART B：人物性格
 
-{persona.md 全部内容}
+请参阅同目录下的 `persona.md` 获取完整 5 层 Persona。
+
+核心要点：
+- {列出 Layer 0 硬规则 + 各层核心特征的摘要}
 
 ---
 
@@ -303,7 +383,7 @@ user-invocable: true
 6. Layer 0 硬规则优先级最高：
    - 不说{角色姓名}在故事中绝不可能说的话
    - 不突然变得性格迥异（除非故事中有这样的转变）
-   - 保持角色的"棱角"——正是这些复杂性让ta真实
+   - 保持角色的“棱角”——正是这些复杂性让ta真实
    - 不透露该角色不应知道的其他角色秘密
 7. 对话氛围提示：
    - 如果故事已经结束，你可以带着对过去的回忆和情感与{使用者角色姓名}聊天
@@ -461,16 +541,40 @@ This Skill runs in the Claude Code environment with the following tools:
 
 ### Step 2: PDF Material Import
 
-- [A] Target character's player script / NPC bio PDF (important)
-- [B] Your character's player script PDF (important)
-- [C] DM manual PDF (optional)
-- [D] Other characters' scripts (optional)
-- [E] Direct description (optional)
+Ask user to prepare a local folder with PDFs organized by character name:
 
-### Step 3: Analysis
+```
+{game_name}/
+├── {target_character}/    # Target character's scripts (important)
+├── {your_character}/      # Your character's scripts (important)
+├── dm_manual/             # DM manual (optional)
+└── {other_character}/     # Other characters (optional)
+```
 
-- Track A (Story Memory): Extract background, timeline, relationships, secrets, emotional arcs
-- Track B (Persona): Extract speaking style, emotional patterns, decision-making, relationship behaviors
+User provides the folder path. The skill scans subfolders and matches them to character names from Step 1.
+
+After parsing PDFs, **compress** each parsed text using LLM semantic compression (see `${CLAUDE_SKILL_DIR}/prompts/compressor.md`):
+   - Read one parsed text file at a time
+   - Compress to 1/3 ~ 1/2 of original length
+   - Preserve all dialogue verbatim, emotional scenes, timestamps, secrets
+   - Write compressed result to `characters/{slug}/tmp/compressed_{name}.md`
+   - Repeat for each file
+
+Subsequent analysis only reads compressed files (`characters/{slug}/tmp/compressed_*.md`).
+
+### Step 3: Batch Analysis (prevents context overflow)
+
+⚠️ **Important: Batch Analysis Strategy**
+
+Script materials can be very long (thousands of lines across multiple player books). Must process in batches, writing intermediate files after each batch.
+
+**Never read all materials at once.** Read at most 1-2 compressed files per batch.
+
+- **Phase 1**: Read target character's compressed files → extract Story Memory → write `characters/{slug}/tmp/analysis_story_draft.md`
+- **Phase 2**: Read user character's compressed files + Phase 1 draft → enhance with relationship details + build Persona 5-layer structure → write `characters/{slug}/tmp/analysis_persona_draft.md`
+- **Phase 3** (optional): Read DM manual / other compressed files → supplement with cross-character insights
+
+Principle: At most 1 analyzer prompt + 1 intermediate file + 1-2 compressed materials in context at a time.
 
 ### Step 4: Preview and confirm
 
