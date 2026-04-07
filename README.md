@@ -82,10 +82,10 @@ ta的故事结束了，但你还想跟ta说说话？<br>
 ```bash
 # 安装到当前项目
 mkdir -p .claude/skills
-git clone https://github.com/your-username/larp-skill .claude/skills/create-larp-character
+git clone https://github.com/zzzzzzza/larp-skill .claude/skills/create-larp-character
 
 # 或安装到全局
-git clone https://github.com/your-username/larp-skill ~/.claude/skills/create-larp-character
+git clone https://github.com/zzzzzzza/larp-skill ~/.claude/skills/create-larp-character
 ```
 
 ### 依赖（可选）
