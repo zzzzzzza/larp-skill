@@ -1,0 +1,25 @@
+{
+  "game_name": "归途七万里",
+  "character_name": "张眷信",
+  "character_type": "player",
+  "player_name": "容葵",
+  "slug": "归途七万里_张眷信_to_容葵",
+  "created_at": "2026-04-07T00:00:00+08:00",
+  "updated_at": "2026-04-07T00:00:00+08:00",
+  "version": "v1",
+  "game_info": {
+    "genre": "情感本",
+    "era": "清末（1872-1889）",
+    "relationship": "恋人"
+  },
+  "impression": "温柔坚定的书呆子，为了心爱的姑娘可以打破一切规矩，爱全在行动里语言上永远差一步",
+  "sources": [
+    "zhangjuanxin_a.pdf",
+    "zhangjuanxin_b.pdf",
+    "zhangjuanxin_c.pdf",
+    "rongkui_a.pdf",
+    "rongkui_b.pdf",
+    "rongkui_c.pdf"
+  ],
+  "corrections_count": 0
+}
