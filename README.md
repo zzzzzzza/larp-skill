@@ -39,6 +39,7 @@ ta的故事结束了，但你还想跟ta说说话？<br>
 |------------|------|-----------------|------|
 | `larp-归途七万里_张眷信_to_容葵` | 归途七万里 | 张眷信 → 容葵 | [📦 下载](https://github.com/zzzzzzza/larp-skill/raw/main/example_skills/归途七万里_张眷信_to_容葵.zip) |
 | `larp-归途七万里_容葵_to_张眷信` | 归途七万里 | 容葵 → 张眷信 | [📦 下载](https://github.com/zzzzzzza/larp-skill/raw/main/example_skills/归途七万里_容葵_to_张眷信.zip) |
+| `larp-塑料温室_赵玄_to_崔昭贤` | 塑料温室 | 赵玄 → 崔昭贤 | [📦 下载](https://github.com/zzzzzzza/larp-skill/raw/main/example_skills/塑料温室_赵玄_to_崔昭贤.zip) |
 
 ### 使用方法（以 Qoder Work 为例）
 

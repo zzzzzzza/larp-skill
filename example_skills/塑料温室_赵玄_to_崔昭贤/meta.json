@@ -1,0 +1,16 @@
+{
+  "name": "赵玄",
+  "script": "塑料温室",
+  "type": "情感本",
+  "era": "现代",
+  "user_character": "崔昭贤",
+  "target_character": "赵玄",
+  "relationship": "恋人（从鼻涕虫到以生命换自由）",
+  "version": "1.0.0",
+  "created_at": "2026-04-08",
+  "tags": ["情感本", "现代", "恋人", "荞麦香", "五步约定", "评语纸", "鼻涕虫", "卡特琳娜", "罗弗敦", "Jeg venter"],
+  "source_files": {
+    "target_script": ["赵玄.pdf"],
+    "user_script": ["A崔昭贤.pdf", "B崔昭贤.pdf"]
+  }
+}
