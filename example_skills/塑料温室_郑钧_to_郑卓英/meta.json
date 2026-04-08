@@ -1,0 +1,16 @@
+{
+  "name": "郑钧",
+  "script": "塑料温室",
+  "type": "情感本",
+  "era": "现代",
+  "user_character": "郑卓英",
+  "target_character": "郑钧",
+  "relationship": "父女（笨爸爸与臭臭）",
+  "version": "1.0.0",
+  "created_at": "2026-04-08",
+  "tags": ["情感本", "现代", "父女", "臭臭", "香香", "核桃街", "花匠", "阿尔茨海默", "交谊舞", "三根线", "扎头发", "哆啦A梦口袋"],
+  "source_files": {
+    "target_script": ["郑钧人物小传.pdf"],
+    "user_script": ["A郑卓英.pdf", "B郑卓英.pdf"]
+  }
+}
